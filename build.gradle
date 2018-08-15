@@ -7,9 +7,7 @@ buildscript {
     }
     dependencies {
         classpath('org.springframework.boot:spring-boot-gradle-plugin:2.0.3.RELEASE')
-// tag::build[]
         classpath('gradle.plugin.com.palantir.gradle.docker:gradle-docker:0.13.0')
-// end::build[]
     }
 }
 
@@ -18,9 +16,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-// tag::plugin[]
 apply plugin: 'com.palantir.docker'
-// end::plugin[]
 
 // This is used as the docker image prefix (org)
 group = 'capcodigital'
@@ -30,14 +26,12 @@ bootJar {
     version =  '0.1.0'
 }
 
-// tag::task[]
 docker {
     dependsOn build
     name "${project.group}/${bootJar.baseName}"
     files bootJar.archivePath
     buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
 }
-// end::task[]
 
 repositories {
     mavenCentral()
@@ -51,8 +45,8 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
 
-    compile("io.springfox:springfox-swagger2:2.0.2")
-    compile("io.springfox:springfox-swagger-ui:2.0.2")
+    compile("io.springfox:springfox-swagger2:2.9.2")
+    compile("io.springfox:springfox-swagger-ui:2.9.2")
     compile("org.springframework.boot:spring-boot-starter-data-mongodb")
     compile('org.json:json:20171018')
     testCompile("org.springframework.boot:spring-boot-starter-test")

@@ -1,5 +1,6 @@
 package hello;
 
+import com.fasterxml.classmate.TypeResolver;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -9,24 +10,26 @@ import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.builders.ResponseMessageBuilder;
 import springfox.documentation.schema.ModelRef;
+import springfox.documentation.schema.WildcardType;
 import springfox.documentation.service.ApiKey;
 import springfox.documentation.service.AuthorizationScope;
 import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger.web.SecurityConfiguration;
-import springfox.documentation.swagger.web.UiConfiguration;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -35,22 +38,16 @@ import java.util.List;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.mongodb.client.model.Filters.eq;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static springfox.documentation.schema.AlternateTypeRules.newRule;
 
 @SpringBootApplication
-//@EnableSwagger2
+@EnableSwagger2
 @RestController
 public class Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
     private MongoClient mongoClient;
     private MongoDatabase database;
-
-    @PostConstruct
-    public void initialize(){
-        mongoClient = new MongoClient( "localhost" );
-        database = mongoClient.getDatabase("local");
-        LOGGER.info("Connecting to mongo db");
-    }
 
     @RequestMapping("/helloWorld")
     public String home() {
@@ -61,6 +58,12 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
+    @PostConstruct
+    public void initialize(){
+        mongoClient = new MongoClient( "localhost" );
+        database = mongoClient.getDatabase("local");
+        LOGGER.info("Connecting to mongo db");
+    }
 
     @RequestMapping("/users/list")
     public String usersList(){
@@ -111,14 +114,14 @@ public class Application {
     public Docket petApi() {
         return new Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors.any()).paths(PathSelectors.any()).build().pathMapping("/")
                 .directModelSubstitute(LocalDate.class, String.class).genericModelSubstitutes(ResponseEntity.class)
-//                .alternateTypeRules(newRule(typeResolver.resolve(DeferredResult.class, typeResolver.resolve(ResponseEntity.class, WildcardType.class)), typeResolver.resolve(WildcardType.class)))
+                .alternateTypeRules(newRule(typeResolver.resolve(DeferredResult.class, typeResolver.resolve(ResponseEntity.class, WildcardType.class)), typeResolver.resolve(WildcardType.class)))
                 .useDefaultResponseMessages(false)
                 .globalResponseMessage(GET, newArrayList(new ResponseMessageBuilder().code(500).message("500 message").responseModel(new ModelRef("Error")).build()))
                 .securitySchemes(newArrayList(apiKey())).securityContexts(newArrayList(securityContext()));
     }
 
-//    @Autowired
-//    private TypeResolver typeResolver;
+    @Autowired
+    private TypeResolver typeResolver;
 
     private ApiKey apiKey() {
         return new ApiKey("mykey", "api_key", "header");
@@ -133,16 +136,6 @@ public class Application {
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
         authorizationScopes[0] = authorizationScope;
         return newArrayList(new SecurityReference("mykey", authorizationScopes));
-    }
-
-    @Bean
-    SecurityConfiguration security() {
-        return new SecurityConfiguration("test-app-client-id", "test-app-realm", "test-app", "apiKey");
-    }
-
-    @Bean
-    UiConfiguration uiConfig() {
-        return new UiConfiguration("validatorUrl");
     }
 
 }
