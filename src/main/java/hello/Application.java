@@ -46,7 +46,6 @@ import static springfox.documentation.schema.AlternateTypeRules.newRule;
 public class Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
-    private MongoClient mongoClient;
     private MongoDatabase database;
 
     @RequestMapping("/helloWorld")
@@ -60,7 +59,7 @@ public class Application {
 
     @PostConstruct
     public void initialize(){
-        mongoClient = new MongoClient( "localhost" );
+        MongoClient mongoClient = new MongoClient("localhost");
         database = mongoClient.getDatabase("local");
         LOGGER.info("Connecting to mongo db");
     }
