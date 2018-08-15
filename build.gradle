@@ -19,10 +19,10 @@ apply plugin: 'io.spring.dependency-management'
 apply plugin: 'com.palantir.docker'
 
 // This is used as the docker image prefix (org)
-group = 'capcodigital'
+group = 'capcotomaa'
 
 bootJar {
-    baseName = 'digital-engineering-rest-service'
+    baseName = 'digitalengineeringcourse2'
     version =  '0.1.0'
 }
 
