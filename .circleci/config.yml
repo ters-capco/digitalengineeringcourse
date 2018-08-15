@@ -8,7 +8,7 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:8-jdk
-        #      - image: circleci/mongo:3.6      
+      - image: circleci/mongo:3.6      
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -41,3 +41,13 @@ jobs:
       # run tests!
       - run: gradle test
 
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/testng/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/testng/ \;
+          when: always
+      - store_test_results:
+          path: ~/testng
+      - store_artifacts:
+          path: ~/testng
