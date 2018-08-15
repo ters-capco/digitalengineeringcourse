@@ -50,6 +50,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-data-mongodb")
     compile('org.json:json:20171018')
     testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("org.springframework.boot:spring-boot-test")
     testCompile("org.testng:testng:6.8.21")
 }
 
