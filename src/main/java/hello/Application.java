@@ -11,9 +11,12 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,10 +46,29 @@ import static springfox.documentation.schema.AlternateTypeRules.newRule;
 @SpringBootApplication
 @EnableSwagger2
 @RestController
+@Configuration
+@PropertySource("classpath:db.properties")
 public class Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
 
-    private MongoDatabase database;
+    @Value("${database.mongo.host}")
+    private String DB_HOST;
+
+    @Value("${database.mongo.port}")
+    private int DB_PORT;
+
+    @Value("${database.mongo.name}")
+    private String DB_NAME;
+
+    @Bean
+    public MongoDatabase db() {
+        return mongoClient().getDatabase(DB_NAME);
+    }
+
+    @Bean
+    public MongoClient mongoClient() {
+        return new MongoClient(DB_HOST, DB_PORT);
+    }
 
     @RequestMapping("/helloWorld")
     public String home() {
@@ -59,14 +81,12 @@ public class Application {
 
     @PostConstruct
     public void initialize(){
-        MongoClient mongoClient = new MongoClient("localhost");
-        database = mongoClient.getDatabase("local");
         LOGGER.info("Connecting to mongo db");
     }
 
     @RequestMapping("/users/list")
     public String usersList(){
-        MongoCollection<Document> collection = database.getCollection("test");
+        MongoCollection<Document> collection = db().getCollection("test");
         FindIterable<Document> iterDoc = collection.find();
 
         StringBuilder sb = new StringBuilder();
@@ -81,7 +101,7 @@ public class Application {
 
     @RequestMapping(value = "/users/get/{id}", method = GET)
     public ResponseEntity usersGet(@PathVariable("id") String id){
-        MongoCollection<Document> collection = database.getCollection("test");
+        MongoCollection<Document> collection = db().getCollection("test");
         Document doc = collection.find(eq("_id", new ObjectId(id))).first();
 
         if (doc == null) {
@@ -98,7 +118,8 @@ public class Application {
     @PostMapping("/insert")
     public ResponseEntity insert(@RequestBody String data){
         JSONObject jsonObj = new JSONObject(data);
-        MongoCollection<Document> collection = database.getCollection("test");
+
+        MongoCollection<Document> collection = db().getCollection("test");
 
         Document document = new Document()
                 .append("firstName", jsonObj.get("firstName"))
