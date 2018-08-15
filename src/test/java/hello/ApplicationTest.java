@@ -3,6 +3,7 @@ package hello;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -29,26 +30,14 @@ public class ApplicationTest extends AbstractTestNGSpringContextTests {
 
     @Test
     public void testUsersList() {
-        ResponseEntity<String> entity = this.restTemplate.getForEntity("/users/list", String.class);
-        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(entity.getBody()).contains("John");
+        ResponseEntity<String> e = insertHelper();
+
+        ResponseEntity<String> responseEntity = this.restTemplate.getForEntity("/users/list", String.class);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).contains("Thomas");
     }
 
-    @Test
-    public void testUsersGet() {
-        ResponseEntity<String> entity = this.restTemplate.getForEntity("/users/get/5b71aeccd1fd0f68275a920f", String.class);
-        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(entity.getBody()).contains("John");
-    }
-
-    @Test
-    public void testUsersGetNotOk() {
-        ResponseEntity<String> entity = this.restTemplate.getForEntity("/users/get/5b71aeccd1fd0f68275a920a", String.class);
-        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    }
-
-    @Test
-    public void testInsert() {
+    private ResponseEntity<String> insertHelper(){
         HashMap requestBody = new HashMap();
         requestBody.put("firstName", "Thomas");
         requestBody.put("lastName", "Ersfeld");
@@ -66,6 +55,28 @@ public class ApplicationTest extends AbstractTestNGSpringContextTests {
 
         ResponseEntity<String> e = this.restTemplate.postForEntity("/insert", entity, String.class);
         assertThat(e.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        return e;
+    }
+
+    @Test
+    public void testUsersGet() {
+        ResponseEntity<String> e = insertHelper();
+        ObjectId id = new ObjectId(e.getBody());
+
+        ResponseEntity<String> responseEntity = this.restTemplate.getForEntity("/users/get/"+id, String.class);
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).contains("Thomas");
+    }
+
+    @Test
+    public void testUsersGetNotOk() {
+        ResponseEntity<String> entity = this.restTemplate.getForEntity("/users/get/5b71aeccd1fd0f68275a920a", String.class);
+        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    public void testInsert() {
+        ResponseEntity<String> e = insertHelper();
     }
 
 }

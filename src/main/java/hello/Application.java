@@ -105,7 +105,9 @@ public class Application {
                 .append("lastName", jsonObj.get("lastName"));
         collection.insertOne(document);
 
-        return new ResponseEntity(HttpStatus.CREATED);
+        ObjectId id = (ObjectId)document.get( "_id" );
+
+        return new ResponseEntity<>(id.toString(), HttpStatus.CREATED);
     }
 
 
