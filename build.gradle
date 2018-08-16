@@ -52,6 +52,7 @@ dependencies {
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("org.springframework.boot:spring-boot-test")
     testCompile("org.testng:testng:6.8.21")
+    compile("org.springframework.kafka:spring-kafka")
 }
 
 configurations {

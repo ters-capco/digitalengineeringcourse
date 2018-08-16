@@ -5,6 +5,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
@@ -19,6 +21,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import springfox.documentation.builders.PathSelectors;
@@ -36,7 +41,9 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.mongodb.client.model.Filters.eq;
@@ -128,6 +135,8 @@ public class Application {
 
         ObjectId id = (ObjectId)document.get( "_id" );
 
+        sendMessage("new user with id "+id.toString());
+
         return new ResponseEntity<>(id.toString(), HttpStatus.CREATED);
     }
 
@@ -160,4 +169,12 @@ public class Application {
         return newArrayList(new SecurityReference("mykey", authorizationScopes));
     }
 
+    public void sendMessage(String msg) {
+        kafkaTemplate.send("test", msg);
+    }
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
 }
+
